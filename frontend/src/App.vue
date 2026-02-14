@@ -1,9 +1,18 @@
 <script setup>
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
+const router = useRouter()
 const isLoginPage = computed(() => route.path === '/login')
+
+const logout = () => {
+  sessionStorage.removeItem('token')
+  sessionStorage.removeItem('username')
+  localStorage.removeItem('token')
+  localStorage.removeItem('username')
+  router.push('/login')
+}
 </script>
 
 <template>
@@ -18,6 +27,7 @@ const isLoginPage = computed(() => route.path === '/login')
           <el-menu-item index="/warehouse">仓库管理</el-menu-item>
           <el-menu-item index="/locations">货位管理</el-menu-item>
           <el-menu-item index="/sku">货物信息</el-menu-item>
+          <el-menu-item index="/account">账号设置</el-menu-item>
         </el-sub-menu>
         <el-sub-menu index="monitor">
           <template #title>可视化监控</template>
@@ -35,7 +45,12 @@ const isLoginPage = computed(() => route.path === '/login')
       </el-menu>
     </el-aside>
     <el-container>
-      <el-header class="header">高空立体仓库货位调度优化系统</el-header>
+      <el-header class="header">
+        <div class="header-content">
+          <div>高空立体仓库货位调度优化系统</div>
+          <el-button type="danger" plain @click="logout">退出登录</el-button>
+        </div>
+      </el-header>
       <el-main class="main">
         <router-view />
       </el-main>
@@ -58,12 +73,16 @@ const isLoginPage = computed(() => route.path === '/login')
 .header {
   font-size: 18px;
   font-weight: 600;
-  display: flex;
-  align-items: center;
   padding: 12px 20px;
   height: auto;
   line-height: 1.4;
   white-space: normal;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .main {

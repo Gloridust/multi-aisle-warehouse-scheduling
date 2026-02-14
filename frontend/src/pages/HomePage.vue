@@ -66,7 +66,9 @@ onMounted(loadStats)
         <el-card>
           <div class="stat-item">
             <div class="stat-label">货位总数</div>
-            <div class="stat-value">{{ warehouse ? warehouse.totalRows * warehouse.totalCols : '-' }}</div>
+            <div class="stat-value">
+              {{ warehouse ? warehouse.totalRows * warehouse.totalCols * (warehouse.totalSides || 2) : '-' }}
+            </div>
           </div>
         </el-card>
       </el-col>

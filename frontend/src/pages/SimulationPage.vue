@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue'
+import { nextTick, onMounted, ref, watch } from 'vue'
 import * as echarts from 'echarts'
 import api from '../api'
 import WarehouseGrid from '../components/WarehouseGrid.vue'
@@ -43,11 +43,16 @@ const runSimulation = async () => {
   })
   results.value = data.results || []
   loading.value = false
+  await nextTick()
   renderChart()
 }
 
 const renderChart = () => {
   if (!chartRef.value) return
+  if (chartInstance && chartInstance.getDom() !== chartRef.value) {
+    chartInstance.dispose()
+    chartInstance = null
+  }
   if (!chartInstance) {
     chartInstance = echarts.init(chartRef.value)
   }
@@ -68,9 +73,14 @@ const renderChart = () => {
   })
 }
 
-watch(results, () => {
+watch(results, async () => {
+  await nextTick()
   renderChart()
 })
+
+const allocationsBySide = (allocations, sideNum) => {
+  return (allocations || []).filter((item) => (item.sideNum ?? 0) === sideNum)
+}
 
 onMounted(() => {
   if (chartRef.value) {
@@ -116,7 +126,26 @@ onMounted(() => {
     <el-row :gutter="20">
       <el-col :span="8" v-for="result in results" :key="result.strategyType">
         <div class="section-title">{{ result.strategyType }}</div>
-        <WarehouseGrid :rows="warehouse.totalRows" :cols="warehouse.totalCols" :cells="result.allocations" />
+        <el-row :gutter="12">
+          <el-col :span="24">
+            <div class="section-title">左侧</div>
+            <WarehouseGrid
+              :rows="warehouse.totalRows"
+              :cols="warehouse.totalCols"
+              :cells="allocationsBySide(result.allocations, 0)"
+              :side="0"
+            />
+          </el-col>
+          <el-col :span="24" style="margin-top: 12px">
+            <div class="section-title">右侧</div>
+            <WarehouseGrid
+              :rows="warehouse.totalRows"
+              :cols="warehouse.totalCols"
+              :cells="allocationsBySide(result.allocations, 1)"
+              :side="1"
+            />
+          </el-col>
+        </el-row>
       </el-col>
     </el-row>
   </div>

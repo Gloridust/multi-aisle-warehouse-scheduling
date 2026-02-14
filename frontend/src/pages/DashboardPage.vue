@@ -6,7 +6,7 @@ import WarehouseGrid from '../components/WarehouseGrid.vue'
 const warehouseId = ref(localStorage.getItem('warehouseId') || '')
 const warehouse = ref(null)
 const locations = ref([])
-const floor = ref('')
+const warehouses = ref([])
 
 const loadDashboard = async () => {
   if (!warehouseId.value) return
@@ -17,11 +17,24 @@ const loadDashboard = async () => {
   localStorage.setItem('warehouseId', warehouseId.value)
 }
 
-onMounted(loadDashboard)
+const loadWarehouses = async () => {
+  const { data } = await api.get('/api/warehouse')
+  warehouses.value = data
+  if (!warehouseId.value && data.length) {
+    warehouseId.value = String(data[0].id)
+  }
+}
 
-const filteredLocations = computed(() => {
-  if (!floor.value) return locations.value
-  return locations.value.filter((item) => item.rowNum === Number(floor.value))
+onMounted(() => {
+  loadWarehouses()
+  loadDashboard()
+})
+
+const sideLocations = computed(() => {
+  return {
+    left: locations.value.filter((item) => (item.sideNum ?? 0) === 0),
+    right: locations.value.filter((item) => (item.sideNum ?? 0) === 1)
+  }
 })
 </script>
 
@@ -30,11 +43,13 @@ const filteredLocations = computed(() => {
     <div class="section-title">仓库看板</div>
     <el-form inline>
       <el-form-item label="仓库ID">
-        <el-input v-model="warehouseId" style="width: 160px" />
-      </el-form-item>
-      <el-form-item label="楼层">
-        <el-select v-model="floor" clearable style="width: 120px">
-          <el-option v-for="row in warehouse?.totalRows || 0" :key="row" :label="row" :value="row" />
+        <el-select v-model="warehouseId" filterable style="width: 200px">
+          <el-option
+            v-for="item in warehouses"
+            :key="item.id"
+            :label="`${item.id} - ${item.name || '未命名仓库'}`"
+            :value="String(item.id)"
+          />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -50,8 +65,15 @@ const filteredLocations = computed(() => {
     <el-tag type="warning" style="margin-right: 8px">待入库</el-tag>
     <el-tag type="info" style="margin-right: 8px">待出库</el-tag>
     <el-tag type="danger">锁定</el-tag>
-    <div style="margin-top: 12px">
-      <WarehouseGrid :rows="warehouse.totalRows" :cols="warehouse.totalCols" :cells="filteredLocations" />
-    </div>
+    <el-row :gutter="20" style="margin-top: 12px">
+      <el-col :span="12">
+        <div class="section-title">左侧</div>
+        <WarehouseGrid :rows="warehouse.totalRows" :cols="warehouse.totalCols" :cells="sideLocations.left" :side="0" />
+      </el-col>
+      <el-col :span="12">
+        <div class="section-title">右侧</div>
+        <WarehouseGrid :rows="warehouse.totalRows" :cols="warehouse.totalCols" :cells="sideLocations.right" :side="1" />
+      </el-col>
+    </el-row>
   </div>
 </template>

@@ -10,6 +10,7 @@ import OutboundListPage from '../pages/OutboundListPage.vue'
 import OutboundDetailPage from '../pages/OutboundDetailPage.vue'
 import SimulationPage from '../pages/SimulationPage.vue'
 import DashboardPage from '../pages/DashboardPage.vue'
+import AccountPage from '../pages/AccountPage.vue'
 
 const routes = [
   { path: '/', redirect: '/home' },
@@ -23,7 +24,8 @@ const routes = [
   { path: '/outbound', component: OutboundListPage },
   { path: '/outbound/:id', component: OutboundDetailPage },
   { path: '/simulation', component: SimulationPage },
-  { path: '/dashboard', component: DashboardPage }
+  { path: '/dashboard', component: DashboardPage },
+  { path: '/account', component: AccountPage }
 ]
 
 const router = createRouter({
@@ -33,7 +35,11 @@ const router = createRouter({
 
 router.beforeEach((to) => {
   if (to.path === '/login') return true
-  const token = localStorage.getItem('token')
+  const token = sessionStorage.getItem('token')
+  if (!token && localStorage.getItem('token')) {
+    localStorage.removeItem('token')
+    localStorage.removeItem('username')
+  }
   if (!token) {
     return '/login'
   }

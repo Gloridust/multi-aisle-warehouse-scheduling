@@ -4,6 +4,7 @@ public class VisualizationLocationView {
     private Long id;
     private Integer rowNum;
     private Integer colNum;
+    private Integer sideNum;
     private Integer status;
     private Long skuId;
     private String skuName;
@@ -32,6 +33,14 @@ public class VisualizationLocationView {
 
     public void setColNum(Integer colNum) {
         this.colNum = colNum;
+    }
+
+    public Integer getSideNum() {
+        return sideNum;
+    }
+
+    public void setSideNum(Integer sideNum) {
+        this.sideNum = sideNum;
     }
 
     public Integer getStatus() {

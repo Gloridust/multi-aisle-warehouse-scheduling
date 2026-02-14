@@ -31,6 +31,7 @@ public class VisualizationService {
             view.setId(location.getId());
             view.setRowNum(location.getRowNum());
             view.setColNum(location.getColNum());
+            view.setSideNum(location.getSideNum());
             view.setStatus(location.getStatus());
             view.setSkuId(location.getCurrentSkuId());
             Sku sku = location.getCurrentSkuId() == null ? null : skuMap.get(location.getCurrentSkuId());

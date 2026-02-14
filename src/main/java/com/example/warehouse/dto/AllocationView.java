@@ -4,6 +4,7 @@ public class AllocationView {
     private Long locationId;
     private Integer rowNum;
     private Integer colNum;
+    private Integer sideNum;
     private Long skuId;
     private String skuName;
     private Integer allocatedQty;
@@ -32,6 +33,14 @@ public class AllocationView {
 
     public void setColNum(Integer colNum) {
         this.colNum = colNum;
+    }
+
+    public Integer getSideNum() {
+        return sideNum;
+    }
+
+    public void setSideNum(Integer sideNum) {
+        this.sideNum = sideNum;
     }
 
     public Long getSkuId() {

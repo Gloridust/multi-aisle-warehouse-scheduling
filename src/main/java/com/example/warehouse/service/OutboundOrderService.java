@@ -89,6 +89,24 @@ public class OutboundOrderService {
         List<OutboundOrderItem> items = outboundOrderItemRepository.findByOrderId(orderId);
         Map<Long, Sku> skuMap = skuRepository.findAll().stream()
                 .collect(Collectors.toMap(Sku::getId, sku -> sku));
+        if (items.isEmpty()) {
+            throw new IllegalStateException("出库订单没有可出库的商品");
+        }
+        for (OutboundOrderItem item : items) {
+            Sku sku = skuMap.get(item.getSkuId());
+            if (sku == null) {
+                throw new IllegalStateException("商品信息不存在，无法执行出库");
+            }
+            List<StorageLocation> locations = storageLocationRepository.findOccupiedBySku(warehouse.getId(), item.getSkuId());
+            int availableQty = locations.stream()
+                    .map(StorageLocation::getCurrentQty)
+                    .filter(qty -> qty != null && qty > 0)
+                    .mapToInt(Integer::intValue)
+                    .sum();
+            if (availableQty < item.getQuantity()) {
+                throw new IllegalStateException("库存不足，无法完成出库");
+            }
+        }
         List<OutboundResult> results = new ArrayList<>();
         for (OutboundOrderItem item : items) {
             Sku sku = skuMap.get(item.getSkuId());
@@ -146,6 +164,7 @@ public class OutboundOrderService {
             view.setLocationId(result.getLocationId());
             view.setRowNum(location == null ? null : location.getRowNum());
             view.setColNum(location == null ? null : location.getColNum());
+            view.setSideNum(location == null ? null : location.getSideNum());
             view.setSkuId(result.getSkuId());
             view.setSkuName(skuNameMap.get(result.getSkuId()));
             view.setPickedQty(result.getPickedQty());

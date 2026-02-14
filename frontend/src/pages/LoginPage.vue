@@ -2,6 +2,7 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import api from '../api'
 
 const router = useRouter()
 const loading = ref(false)
@@ -15,14 +16,22 @@ const login = async () => {
     ElMessage.warning('请输入账号与密码')
     return
   }
-  if (form.username !== 'admin' || form.password !== 'admin123') {
-    ElMessage.error('账号或密码错误')
-    return
-  }
   loading.value = true
-  localStorage.setItem('token', 'demo-token')
-  loading.value = false
-  router.replace('/home')
+  try {
+    const { data } = await api.post('/api/auth/login', {
+      username: form.username,
+      password: form.password
+    })
+    sessionStorage.setItem('token', data.token || '')
+    sessionStorage.setItem('username', data.username || form.username)
+    localStorage.removeItem('token')
+    localStorage.removeItem('username')
+    router.replace('/home')
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || '账号或密码错误')
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
@@ -39,7 +48,7 @@ const login = async () => {
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :loading="loading" @click="login">登录</el-button>
-          <el-button type="text">忘记密码</el-button>
+          <!-- <el-button type="text">忘记密码</el-button> -->
         </el-form-item>
       </el-form>
     </div>

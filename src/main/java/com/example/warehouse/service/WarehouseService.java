@@ -25,13 +25,15 @@ public class WarehouseService {
         warehouse.setName(request.getName());
         warehouse.setTotalRows(request.getTotalRows());
         warehouse.setTotalCols(request.getTotalCols());
+        warehouse.setTotalSides(resolveTotalSides(request.getTotalSides()));
         warehouse.setPalletVolume(request.getPalletVolume());
         warehouse.setHorizontalSpeed(request.getHorizontalSpeed());
         warehouse.setVerticalSpeed(request.getVerticalSpeed());
         warehouse.setEntryRow(request.getEntryRow() == null ? 1 : request.getEntryRow());
         warehouse.setEntryCol(request.getEntryCol() == null ? 1 : request.getEntryCol());
+        warehouse.setEntrySide(resolveEntrySide(request.getEntrySide(), warehouse.getTotalSides()));
         Long id = warehouseRepository.insert(warehouse);
-        storageLocationRepository.insertBatch(id, warehouse.getTotalRows(), warehouse.getTotalCols());
+        storageLocationRepository.insertBatch(id, warehouse.getTotalRows(), warehouse.getTotalCols(), warehouse.getTotalSides());
         warehouse.setId(id);
         return warehouse;
     }
@@ -41,11 +43,13 @@ public class WarehouseService {
         warehouse.setName(request.getName());
         warehouse.setTotalRows(request.getTotalRows());
         warehouse.setTotalCols(request.getTotalCols());
+        warehouse.setTotalSides(resolveTotalSides(request.getTotalSides()));
         warehouse.setPalletVolume(request.getPalletVolume());
         warehouse.setHorizontalSpeed(request.getHorizontalSpeed());
         warehouse.setVerticalSpeed(request.getVerticalSpeed());
         warehouse.setEntryRow(request.getEntryRow() == null ? 1 : request.getEntryRow());
         warehouse.setEntryCol(request.getEntryCol() == null ? 1 : request.getEntryCol());
+        warehouse.setEntrySide(resolveEntrySide(request.getEntrySide(), warehouse.getTotalSides()));
         warehouseRepository.update(warehouse);
         return warehouse;
     }
@@ -60,5 +64,25 @@ public class WarehouseService {
 
     public List<Warehouse> listWarehouses() {
         return warehouseRepository.findAll();
+    }
+
+    private int resolveTotalSides(Integer totalSides) {
+        if (totalSides == null || totalSides <= 0) {
+            return 2;
+        }
+        return totalSides;
+    }
+
+    private int resolveEntrySide(Integer entrySide, int totalSides) {
+        if (entrySide == null) {
+            return 0;
+        }
+        if (entrySide < 0) {
+            return 0;
+        }
+        if (entrySide >= totalSides) {
+            return totalSides - 1;
+        }
+        return entrySide;
     }
 }

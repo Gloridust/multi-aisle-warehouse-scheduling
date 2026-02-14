@@ -100,6 +100,7 @@ public class InboundOrderService {
             view.setLocationId(result.getLocationId());
             view.setRowNum(location == null ? null : location.getRowNum());
             view.setColNum(location == null ? null : location.getColNum());
+            view.setSideNum(location == null ? null : location.getSideNum());
             view.setSkuId(result.getSkuId());
             view.setSkuName(skuNameMap.get(result.getSkuId()));
             view.setAllocatedQty(result.getAllocatedQty());
@@ -115,6 +116,31 @@ public class InboundOrderService {
         Warehouse warehouse = getWarehouse();
         List<StorageLocation> freeLocations = storageLocationRepository.findFreeLocations(warehouse.getId());
         List<OrderItemDetail> details = buildOrderDetails(orderId);
+        if (details.isEmpty()) {
+            throw new IllegalStateException("入库订单没有可入库的商品");
+        }
+        if (warehouse.getPalletVolume() == null || warehouse.getPalletVolume() <= 0) {
+            throw new IllegalStateException("托盘容积无效，无法执行入库");
+        }
+        int requiredLocations = 0;
+        for (OrderItemDetail detail : details) {
+            Sku sku = detail.getSku();
+            if (sku == null) {
+                throw new IllegalStateException("商品信息不存在，无法执行入库");
+            }
+            if (sku.getUnitVolume() == null || sku.getUnitVolume() <= 0) {
+                throw new IllegalStateException("商品体积无效，无法执行入库");
+            }
+            int capacity = (int) Math.floor(warehouse.getPalletVolume() / sku.getUnitVolume());
+            if (capacity <= 0) {
+                throw new IllegalStateException("托盘容量不足，无法装下商品");
+            }
+            int required = (int) Math.ceil((double) detail.getQuantity() / capacity);
+            requiredLocations += required;
+        }
+        if (freeLocations.size() < requiredLocations) {
+            throw new IllegalStateException("可用货位不足，无法完成入库");
+        }
         AllocationStrategy strategy = strategyFactory.get(strategyType);
         List<AllocationResult> allocations = strategy.allocate(warehouse, details, freeLocations);
         for (AllocationResult allocation : allocations) {

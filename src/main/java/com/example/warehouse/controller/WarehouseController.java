@@ -47,11 +47,16 @@ public class WarehouseController {
     }
 
     @GetMapping("/{id}/locations")
-    public List<StorageLocation> getLocations(@PathVariable Long id, @RequestParam(required = false) Integer row) {
-        if (row == null) {
-            return storageLocationRepository.findByWarehouseId(id);
+    public List<StorageLocation> getLocations(@PathVariable Long id,
+                                              @RequestParam(required = false) Integer row,
+                                              @RequestParam(required = false) Integer side) {
+        if (row != null && side != null) {
+            return storageLocationRepository.findByWarehouseIdAndRowAndSide(id, row, side);
         }
-        return storageLocationRepository.findByWarehouseIdAndRow(id, row);
+        if (side != null) {
+            return storageLocationRepository.findByWarehouseIdAndSide(id, side);
+        }
+        return storageLocationRepository.findByWarehouseId(id);
     }
 
     @GetMapping("/{id}/visualization")

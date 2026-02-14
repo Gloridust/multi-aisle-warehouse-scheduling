@@ -138,6 +138,7 @@ public class SimulationService {
             view.setLocationId(allocation.getLocationId());
             view.setRowNum(location == null ? null : location.getRowNum());
             view.setColNum(location == null ? null : location.getColNum());
+            view.setSideNum(location == null ? null : location.getSideNum());
             view.setSkuId(allocation.getSkuId());
             Sku sku = skuMap.get(allocation.getSkuId());
             view.setSkuName(sku == null ? null : sku.getName());

@@ -63,6 +63,7 @@ onMounted(async () => {
       <el-table-column prop="locationId" label="货位ID" width="100" />
       <el-table-column prop="rowNum" label="层" width="80" />
       <el-table-column prop="colNum" label="列" width="80" />
+      <el-table-column prop="sideNum" label="侧" width="80" />
       <el-table-column prop="skuName" label="SKU" />
       <el-table-column prop="pickedQty" label="数量(件)" />
       <el-table-column prop="pickedVolume" label="体积(m³)" />

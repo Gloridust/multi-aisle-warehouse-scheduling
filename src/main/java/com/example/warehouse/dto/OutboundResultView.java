@@ -4,6 +4,7 @@ public class OutboundResultView {
     private Long locationId;
     private Integer rowNum;
     private Integer colNum;
+    private Integer sideNum;
     private Long skuId;
     private String skuName;
     private Integer pickedQty;
@@ -32,6 +33,14 @@ public class OutboundResultView {
 
     public void setColNum(Integer colNum) {
         this.colNum = colNum;
+    }
+
+    public Integer getSideNum() {
+        return sideNum;
+    }
+
+    public void setSideNum(Integer sideNum) {
+        this.sideNum = sideNum;
     }
 
     public Long getSkuId() {

@@ -7,11 +7,13 @@ const form = reactive({
   name: '',
   totalRows: 6,
   totalCols: 8,
+  totalSides: 2,
   palletVolume: 1,
   horizontalSpeed: 1,
   verticalSpeed: 1,
   entryRow: 1,
-  entryCol: 1
+  entryCol: 1,
+  entrySide: 0
 })
 
 const loading = ref(false)
@@ -20,7 +22,11 @@ const loadWarehouse = async () => {
   if (!warehouseId.value) return
   loading.value = true
   const { data } = await api.get(`/api/warehouse/${warehouseId.value}`)
-  Object.assign(form, data)
+  Object.assign(form, {
+    ...data,
+    totalSides: data.totalSides || 2,
+    entrySide: data.entrySide ?? 0
+  })
   loading.value = false
 }
 
@@ -58,6 +64,9 @@ onMounted(loadWarehouse)
       <el-form-item label="总列数(列)">
         <el-input-number v-model="form.totalCols" :min="1"></el-input-number>
       </el-form-item>
+      <el-form-item label="侧面数量(左右)">
+        <el-input-number v-model="form.totalSides" :min="2" :max="2"></el-input-number>
+      </el-form-item>
       <el-form-item label="托盘容积(m³)">
         <el-input-number v-model="form.palletVolume" :min="0.01" :step="0.1"></el-input-number>
       </el-form-item>
@@ -72,6 +81,12 @@ onMounted(loadWarehouse)
       </el-form-item>
       <el-form-item label="入库口列(列)">
         <el-input-number v-model="form.entryCol" :min="1"></el-input-number>
+      </el-form-item>
+      <el-form-item label="入库口侧(0/1)">
+        <el-select v-model="form.entrySide" style="width: 160px">
+          <el-option label="0" :value="0" />
+          <el-option label="1" :value="1" />
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" :loading="loading" @click="createWarehouse">创建仓库</el-button>

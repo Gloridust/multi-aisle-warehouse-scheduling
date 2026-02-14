@@ -87,10 +87,10 @@ onMounted(loadSkus)
         </el-select>
       </el-form-item>
       <el-form-item label="体积(m³)">
-        <el-input-number v-model="form.unitVolume" :min="0.01" :step="0.01" />
+        <el-input-number v-model="form.unitVolume" :min="0.0001" :step="0.01" />
       </el-form-item>
       <el-form-item label="重量(kg)">
-        <el-input-number v-model="form.unitWeight" :min="0.01" :step="0.01" />
+        <el-input-number v-model="form.unitWeight" :min="0.0001" :step="0.01" />
       </el-form-item>
     </el-form>
     <template #footer>
