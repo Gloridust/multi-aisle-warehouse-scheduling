@@ -1,9 +1,5 @@
 # 多层货位物流仓库调度优化系统
 
-![Lines of Code](https://img.shields.io/endpoint?url=https://api.codetabs.com/v1/loc?github=Gloridust/multi-aisle-warehouse-scheduling)
-
-![Top Languages](https://github-readme-stats.vercel.app/api/top-langs/?username=Gloridust&repo=multi-aisle-warehouse-scheduling&layout=donut&langs_count=8)
-
 ## 功能概述
 - 仓库管理：配置层数、列数、托盘容积、堆垛机速度、入库口位置，自动生成货位
 - 商品管理：SKU 维护与分类管理
