@@ -63,4 +63,10 @@ public class WarehouseController {
     public Object visualization(@PathVariable Long id) {
         return visualizationService.getVisualization(id);
     }
+
+    @GetMapping("/stock")
+    public Object stockSummary() {
+        Warehouse warehouse = warehouseService.getFirstWarehouse().orElseThrow();
+        return storageLocationRepository.fetchStockSummary(warehouse.getId());
+    }
 }

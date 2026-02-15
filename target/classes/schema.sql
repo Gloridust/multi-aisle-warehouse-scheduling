@@ -21,7 +21,8 @@ CREATE TABLE IF NOT EXISTS storage_location (
   status INTEGER,
   current_sku_id INTEGER,
   current_qty INTEGER,
-  used_volume REAL
+  used_volume REAL,
+  sku_image_base64 TEXT
 );
 
 CREATE TABLE IF NOT EXISTS sku (
@@ -44,7 +45,8 @@ CREATE TABLE IF NOT EXISTS inbound_order_item (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   order_id INTEGER,
   sku_id INTEGER,
-  quantity INTEGER
+  quantity INTEGER,
+  image_base64 TEXT
 );
 
 CREATE TABLE IF NOT EXISTS outbound_order (

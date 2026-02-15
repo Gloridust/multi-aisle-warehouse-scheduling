@@ -54,6 +54,9 @@ public class InboundOrderService {
     }
 
     public InboundOrder createOrder(InboundOrderCreateRequest request) {
+        if (request.getItems() == null || request.getItems().isEmpty()) {
+            throw new IllegalStateException("入库订单没有商品");
+        }
         ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"));
         InboundOrder order = new InboundOrder();
         order.setOrderNo(buildOrderNo("IN", request.getOrderNo(), now));
@@ -67,6 +70,7 @@ public class InboundOrderService {
             item.setOrderId(orderId);
             item.setSkuId(itemRequest.getSkuId());
             item.setQuantity(itemRequest.getQuantity());
+            item.setImageBase64(itemRequest.getImageBase64());
             items.add(item);
         }
         inboundOrderItemRepository.insertBatch(orderId, items);
@@ -113,9 +117,14 @@ public class InboundOrderService {
 
     public List<AllocationView> executeInbound(Long orderId, String strategyType) {
         InboundOrder order = inboundOrderRepository.findById(orderId).orElseThrow();
+        if (order.getStatus() != null && order.getStatus() == 2) {
+            throw new IllegalStateException("入库订单已执行");
+        }
         Warehouse warehouse = getWarehouse();
         List<StorageLocation> freeLocations = storageLocationRepository.findFreeLocations(warehouse.getId());
         List<OrderItemDetail> details = buildOrderDetails(orderId);
+        Map<Long, String> imageMap = inboundOrderItemRepository.findByOrderId(orderId).stream()
+                .collect(Collectors.toMap(InboundOrderItem::getSkuId, InboundOrderItem::getImageBase64, (a, b) -> a));
         if (details.isEmpty()) {
             throw new IllegalStateException("入库订单没有可入库的商品");
         }
@@ -154,7 +163,8 @@ public class InboundOrderService {
                     allocation.getLocationId(),
                     allocation.getSkuId(),
                     allocation.getAllocatedQty(),
-                    allocation.getAllocatedVolume()
+                    allocation.getAllocatedVolume(),
+                    imageMap.get(allocation.getSkuId())
             );
         }
         inboundOrderRepository.updateStatusAndStrategy(orderId, 2, strategyType);

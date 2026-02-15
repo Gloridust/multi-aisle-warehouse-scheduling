@@ -10,6 +10,7 @@ public class StorageLocation {
     private Long currentSkuId;
     private Integer currentQty;
     private Double usedVolume;
+    private String skuImageBase64;
 
     public Long getId() {
         return id;
@@ -81,5 +82,13 @@ public class StorageLocation {
 
     public void setUsedVolume(Double usedVolume) {
         this.usedVolume = usedVolume;
+    }
+
+    public String getSkuImageBase64() {
+        return skuImageBase64;
+    }
+
+    public void setSkuImageBase64(String skuImageBase64) {
+        this.skuImageBase64 = skuImageBase64;
     }
 }

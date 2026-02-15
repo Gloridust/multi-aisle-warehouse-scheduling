@@ -1,5 +1,6 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { ElMessage } from 'element-plus'
 import { useRoute } from 'vue-router'
 import api from '../api'
 
@@ -8,6 +9,14 @@ const order = ref(null)
 const items = ref([])
 const results = ref([])
 const loading = ref(false)
+const isExecuted = computed(() => order.value?.status === 2)
+
+const statusLabel = (value) => {
+  if (value === 0) return '待执行'
+  if (value === 1) return '处理中'
+  if (value === 2) return '已完成'
+  return '-'
+}
 
 const loadDetail = async () => {
   const { data } = await api.get(`/api/outbound-order/${route.params.id}`)
@@ -21,10 +30,21 @@ const loadResults = async () => {
 }
 
 const execute = async () => {
+  if (isExecuted.value) {
+    ElMessage.warning('出库订单已执行')
+    return
+  }
   loading.value = true
-  const { data } = await api.post(`/api/outbound-order/${route.params.id}/execute`)
-  results.value = data
-  loading.value = false
+  try {
+    const { data } = await api.post(`/api/outbound-order/${route.params.id}/execute`)
+    results.value = data
+    await loadDetail()
+    ElMessage.success('出库执行成功')
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || '出库执行失败')
+  } finally {
+    loading.value = false
+  }
 }
 
 onMounted(async () => {
@@ -38,7 +58,7 @@ onMounted(async () => {
     <div class="section-title">订单信息</div>
     <el-descriptions :column="2" v-if="order">
       <el-descriptions-item label="订单号">{{ order.orderNo }}</el-descriptions-item>
-      <el-descriptions-item label="状态">{{ order.status }}</el-descriptions-item>
+      <el-descriptions-item label="状态">{{ statusLabel(order.status) }}</el-descriptions-item>
       <el-descriptions-item label="创建时间">{{ order.createTime }}</el-descriptions-item>
     </el-descriptions>
   </div>
@@ -54,7 +74,7 @@ onMounted(async () => {
 
   <div class="panel" style="margin-top: 20px">
     <div class="section-title">执行出库</div>
-    <el-button type="primary" :loading="loading" @click="execute">执行出库</el-button>
+    <el-button type="primary" :loading="loading" :disabled="isExecuted" @click="execute">执行出库</el-button>
   </div>
 
   <div class="panel" style="margin-top: 20px">

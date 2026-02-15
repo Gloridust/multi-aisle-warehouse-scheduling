@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps({
   rows: { type: Number, required: true },
@@ -44,6 +44,19 @@ const statusClass = (cell) => {
   if (cell.status === 4) return 'status-outbound'
   return null
 }
+
+const imageDialogVisible = ref(false)
+const imageUrl = ref('')
+const imageTitle = ref('')
+
+const openImage = (cell, row, col) => {
+  if (!cell || !cell.skuImageBase64) {
+    return
+  }
+  imageUrl.value = cell.skuImageBase64
+  imageTitle.value = `货位 ${row}-${col}-${cell.sideNum ?? 0}`
+  imageDialogVisible.value = true
+}
 </script>
 
 <template>
@@ -67,9 +80,14 @@ const statusClass = (cell) => {
               statusClass(cellMap.get(keyFor(row, col))),
               cellMap.get(keyFor(row, col)) && cellMap.get(keyFor(row, col)).skuId ? `category-${colorIndex(cellMap.get(keyFor(row, col)))}` : ''
             ]"
+            @click="openImage(cellMap.get(keyFor(row, col)), row, col)"
           ></div>
         </el-tooltip>
       </template>
     </template>
   </div>
+
+  <el-dialog v-model="imageDialogVisible" :title="imageTitle" width="420px">
+    <img v-if="imageUrl" :src="imageUrl" alt="货位图片" style="width: 100%; border-radius: 8px" />
+  </el-dialog>
 </template>

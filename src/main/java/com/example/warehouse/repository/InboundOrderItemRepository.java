@@ -21,14 +21,15 @@ public class InboundOrderItemRepository {
         item.setOrderId(rs.getLong("order_id"));
         item.setSkuId(rs.getLong("sku_id"));
         item.setQuantity(rs.getInt("quantity"));
+        item.setImageBase64(rs.getString("image_base64"));
         return item;
     };
 
     public void insertBatch(Long orderId, List<InboundOrderItem> items) {
         for (InboundOrderItem item : items) {
             jdbcTemplate.update(
-                    "INSERT INTO inbound_order_item (order_id, sku_id, quantity) VALUES (?, ?, ?)",
-                    orderId, item.getSkuId(), item.getQuantity()
+                    "INSERT INTO inbound_order_item (order_id, sku_id, quantity, image_base64) VALUES (?, ?, ?, ?)",
+                    orderId, item.getSkuId(), item.getQuantity(), item.getImageBase64()
             );
         }
     }

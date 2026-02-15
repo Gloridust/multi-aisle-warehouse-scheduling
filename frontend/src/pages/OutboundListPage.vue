@@ -1,11 +1,13 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import api from '../api'
 
 const router = useRouter()
 const orders = ref([])
 const skus = ref([])
+const stockMap = ref({})
 const dialogVisible = ref(false)
 const form = reactive({
   orderNo: '',
@@ -40,6 +42,15 @@ const loadSkus = async () => {
   skus.value = data
 }
 
+const loadStock = async () => {
+  const { data } = await api.get('/api/warehouse/stock')
+  const map = {}
+  data.forEach((row) => {
+    map[row.skuId] = row.totalQty
+  })
+  stockMap.value = map
+}
+
 const openCreate = () => {
   form.orderNo = buildOrderNo('OUT')
   form.items = []
@@ -54,10 +65,42 @@ const removeItem = (index) => {
   form.items.splice(index, 1)
 }
 
+const statusLabel = (value) => {
+  if (value === 0) return '待执行'
+  if (value === 1) return '处理中'
+  if (value === 2) return '已完成'
+  return '-'
+}
+
+const getStock = (skuId) => {
+  if (!skuId) return 0
+  return stockMap.value[skuId] || 0
+}
+
 const createOrder = async () => {
-  await api.post('/api/outbound-order', form)
-  dialogVisible.value = false
-  await loadOrders()
+  if (!form.items.length) {
+    ElMessage.warning('请添加商品')
+    return
+  }
+  const invalid = form.items.some((item) => !item.skuId || !item.quantity || item.quantity <= 0)
+  if (invalid) {
+    ElMessage.warning('请完善商品与数量')
+    return
+  }
+  const overStock = form.items.some((item) => item.quantity > getStock(item.skuId))
+  if (overStock) {
+    ElMessage.error('库存不足，无法创建出库订单')
+    return
+  }
+  try {
+    await api.post('/api/outbound-order', form)
+    ElMessage.success('出库订单已创建')
+    dialogVisible.value = false
+    await loadOrders()
+    await loadStock()
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || '创建出库订单失败')
+  }
 }
 
 const goDetail = (row) => {
@@ -67,6 +110,7 @@ const goDetail = (row) => {
 onMounted(async () => {
   await loadOrders()
   await loadSkus()
+  await loadStock()
 })
 </script>
 
@@ -77,7 +121,9 @@ onMounted(async () => {
     <el-table :data="orders" style="width: 100%; margin-top: 16px">
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="orderNo" label="订单号" />
-      <el-table-column prop="status" label="状态" width="80" />
+      <el-table-column prop="status" label="状态" width="100">
+        <template #default="{ row }">{{ statusLabel(row.status) }}</template>
+      </el-table-column>
       <el-table-column prop="createTime" label="创建时间" />
       <el-table-column label="操作" width="160">
         <template #default="{ row }">
@@ -94,12 +140,22 @@ onMounted(async () => {
       </el-form-item>
       <el-form-item label="订单项">
         <el-button size="small" @click="addItem">添加商品</el-button>
-        <el-table :data="form.items" style="width: 100%; margin-top: 12px">
+        <el-table :data="form.items" class="order-items-table" style="width: 100%; margin-top: 12px">
           <el-table-column label="商品">
             <template #default="{ row }">
               <el-select v-model="row.skuId" placeholder="选择SKU" style="width: 160px">
-                <el-option v-for="sku in skus" :key="sku.id" :label="sku.name" :value="sku.id" />
+                <el-option
+                  v-for="sku in skus"
+                  :key="sku.id"
+                  :label="`${sku.name} (库存:${getStock(sku.id)})`"
+                  :value="sku.id"
+                />
               </el-select>
+            </template>
+          </el-table-column>
+          <el-table-column label="库存" width="120">
+            <template #default="{ row }">
+              {{ getStock(row.skuId) }}
             </template>
           </el-table-column>
           <el-table-column label="数量(件)" width="140">
@@ -121,3 +177,17 @@ onMounted(async () => {
     </template>
   </el-dialog>
 </template>
+
+<style scoped>
+.order-items-table {
+  min-width: 0;
+}
+
+:deep(.order-items-table .el-table__body-wrapper) {
+  overflow-x: auto;
+}
+
+:deep(.order-items-table .el-input-number) {
+  width: 140px;
+}
+</style>

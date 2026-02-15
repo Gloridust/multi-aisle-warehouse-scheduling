@@ -23,6 +23,8 @@ public class WarehouseSchedulingApplication {
             addColumnIfMissing(jdbcTemplate, "warehouse", "total_sides", "INTEGER DEFAULT 2");
             addColumnIfMissing(jdbcTemplate, "warehouse", "entry_side", "INTEGER DEFAULT 0");
             addColumnIfMissing(jdbcTemplate, "storage_location", "side_num", "INTEGER DEFAULT 0");
+            addColumnIfMissing(jdbcTemplate, "storage_location", "sku_image_base64", "TEXT");
+            addColumnIfMissing(jdbcTemplate, "inbound_order_item", "image_base64", "TEXT");
             backfillStorageSides(jdbcTemplate);
         };
     }

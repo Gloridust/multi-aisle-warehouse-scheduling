@@ -51,6 +51,15 @@ public class OutboundOrderService {
     }
 
     public OutboundOrder createOrder(OutboundOrderCreateRequest request) {
+        if (request.getItems() == null || request.getItems().isEmpty()) {
+            throw new IllegalStateException("出库订单没有商品");
+        }
+        Map<Long, Sku> skuMap = skuRepository.findAll().stream()
+                .collect(Collectors.toMap(Sku::getId, sku -> sku));
+        Warehouse warehouse = getWarehouse();
+        Map<Long, Integer> stockMap = storageLocationRepository.fetchStockSummary(warehouse.getId()).stream()
+                .collect(Collectors.toMap(StorageLocationRepository.StockSummaryRow::getSkuId,
+                        StorageLocationRepository.StockSummaryRow::getTotalQty));
         ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"));
         OutboundOrder order = new OutboundOrder();
         order.setOrderNo(buildOrderNo("OUT", request.getOrderNo(), now));
@@ -59,6 +68,19 @@ public class OutboundOrderService {
         Long orderId = outboundOrderRepository.insert(order);
         List<OutboundOrderItem> items = new ArrayList<>();
         for (com.example.warehouse.dto.OutboundOrderItemRequest itemRequest : request.getItems()) {
+            if (itemRequest.getSkuId() == null) {
+                throw new IllegalStateException("商品信息不存在，无法创建出库订单");
+            }
+            if (itemRequest.getQuantity() == null || itemRequest.getQuantity() <= 0) {
+                throw new IllegalStateException("出库数量无效");
+            }
+            if (!skuMap.containsKey(itemRequest.getSkuId())) {
+                throw new IllegalStateException("商品信息不存在，无法创建出库订单");
+            }
+            int stockQty = stockMap.getOrDefault(itemRequest.getSkuId(), 0);
+            if (itemRequest.getQuantity() > stockQty) {
+                throw new IllegalStateException("库存不足，无法创建出库订单");
+            }
             OutboundOrderItem item = new OutboundOrderItem();
             item.setOrderId(orderId);
             item.setSkuId(itemRequest.getSkuId());
@@ -85,6 +107,9 @@ public class OutboundOrderService {
 
     public List<OutboundResultView> executeOutbound(Long orderId) {
         OutboundOrder order = outboundOrderRepository.findById(orderId).orElseThrow();
+        if (order.getStatus() != null && order.getStatus() == 2) {
+            throw new IllegalStateException("出库订单已执行");
+        }
         Warehouse warehouse = getWarehouse();
         List<OutboundOrderItem> items = outboundOrderItemRepository.findByOrderId(orderId);
         Map<Long, Sku> skuMap = skuRepository.findAll().stream()
@@ -137,10 +162,17 @@ public class OutboundOrderService {
                 results.add(result);
                 int newQty = currentQty - pickedQty;
                 if (newQty <= 0) {
-                    storageLocationRepository.updateLocationAfterOutbound(location.getId(), null, null, 0, null);
+                    storageLocationRepository.updateLocationAfterOutbound(location.getId(), null, null, 0, null, null);
                 } else {
                     double newUsedVolume = newQty * sku.getUnitVolume();
-                    storageLocationRepository.updateLocationAfterOutbound(location.getId(), newQty, newUsedVolume, 1, item.getSkuId());
+                    storageLocationRepository.updateLocationAfterOutbound(
+                            location.getId(),
+                            newQty,
+                            newUsedVolume,
+                            1,
+                            item.getSkuId(),
+                            location.getSkuImageBase64()
+                    );
                 }
                 remaining -= pickedQty;
             }

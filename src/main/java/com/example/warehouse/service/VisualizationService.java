@@ -38,6 +38,7 @@ public class VisualizationService {
             view.setSkuName(sku == null ? null : sku.getName());
             view.setCurrentQty(location.getCurrentQty());
             view.setUsedVolume(location.getUsedVolume());
+            view.setSkuImageBase64(location.getSkuImageBase64());
             views.add(view);
         }
         return views;

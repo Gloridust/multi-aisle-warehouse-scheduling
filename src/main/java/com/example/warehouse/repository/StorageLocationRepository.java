@@ -27,6 +27,7 @@ public class StorageLocationRepository {
         location.setCurrentSkuId(rs.getObject("current_sku_id") == null ? null : rs.getLong("current_sku_id"));
         location.setCurrentQty(rs.getObject("current_qty") == null ? null : rs.getInt("current_qty"));
         location.setUsedVolume(rs.getObject("used_volume") == null ? null : rs.getDouble("used_volume"));
+        location.setSkuImageBase64(rs.getString("sku_image_base64"));
         return location;
     };
 
@@ -92,21 +93,47 @@ public class StorageLocationRepository {
         return result.stream().findFirst();
     }
 
-    public void updateLocationOccupied(Long id, Long skuId, int qty, double usedVolume) {
-        jdbcTemplate.update(
-                "UPDATE storage_location SET status = 1, current_sku_id = ?, current_qty = ?, used_volume = ? WHERE id = ?",
-                skuId, qty, usedVolume, id
+    public List<StockSummaryRow> fetchStockSummary(Long warehouseId) {
+        return jdbcTemplate.query(
+                "SELECT current_sku_id, SUM(current_qty) AS total_qty FROM storage_location WHERE warehouse_id = ? AND status = 1 AND current_sku_id IS NOT NULL GROUP BY current_sku_id",
+                (rs, rowNum) -> new StockSummaryRow(rs.getLong("current_sku_id"), rs.getInt("total_qty")),
+                warehouseId
         );
     }
 
-    public void updateLocationAfterOutbound(Long id, Integer qty, Double usedVolume, Integer status, Long skuId) {
+    public void updateLocationOccupied(Long id, Long skuId, int qty, double usedVolume, String imageBase64) {
         jdbcTemplate.update(
-                "UPDATE storage_location SET status = ?, current_sku_id = ?, current_qty = ?, used_volume = ? WHERE id = ?",
-                status, skuId, qty, usedVolume, id
+                "UPDATE storage_location SET status = 1, current_sku_id = ?, current_qty = ?, used_volume = ?, sku_image_base64 = ? WHERE id = ?",
+                skuId, qty, usedVolume, imageBase64, id
+        );
+    }
+
+    public void updateLocationAfterOutbound(Long id, Integer qty, Double usedVolume, Integer status, Long skuId, String imageBase64) {
+        jdbcTemplate.update(
+                "UPDATE storage_location SET status = ?, current_sku_id = ?, current_qty = ?, used_volume = ?, sku_image_base64 = ? WHERE id = ?",
+                status, skuId, qty, usedVolume, imageBase64, id
         );
     }
 
     public void updateLocationStatus(Long id, int status) {
         jdbcTemplate.update("UPDATE storage_location SET status = ? WHERE id = ?", status, id);
+    }
+
+    public static class StockSummaryRow {
+        private final Long skuId;
+        private final Integer totalQty;
+
+        public StockSummaryRow(Long skuId, Integer totalQty) {
+            this.skuId = skuId;
+            this.totalQty = totalQty;
+        }
+
+        public Long getSkuId() {
+            return skuId;
+        }
+
+        public Integer getTotalQty() {
+            return totalQty;
+        }
     }
 }

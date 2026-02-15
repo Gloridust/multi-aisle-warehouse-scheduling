@@ -1,5 +1,6 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { ElMessage } from 'element-plus'
 import { useRoute } from 'vue-router'
 import api from '../api'
 
@@ -9,6 +10,14 @@ const items = ref([])
 const allocations = ref([])
 const strategyType = ref('CATEGORY')
 const loading = ref(false)
+const isExecuted = computed(() => order.value?.status === 2)
+
+const statusLabel = (value) => {
+  if (value === 0) return '待执行'
+  if (value === 1) return '处理中'
+  if (value === 2) return '已完成'
+  return '-'
+}
 
 const loadDetail = async () => {
   const { data } = await api.get(`/api/inbound-order/${route.params.id}`)
@@ -22,10 +31,21 @@ const loadAllocations = async () => {
 }
 
 const execute = async () => {
+  if (isExecuted.value) {
+    ElMessage.warning('入库订单已执行')
+    return
+  }
   loading.value = true
-  const { data } = await api.post(`/api/inbound-order/${route.params.id}/execute`, { strategyType: strategyType.value })
-  allocations.value = data
-  loading.value = false
+  try {
+    const { data } = await api.post(`/api/inbound-order/${route.params.id}/execute`, { strategyType: strategyType.value })
+    allocations.value = data
+    await loadDetail()
+    ElMessage.success('入库执行成功')
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || '入库执行失败')
+  } finally {
+    loading.value = false
+  }
 }
 
 onMounted(async () => {
@@ -39,7 +59,7 @@ onMounted(async () => {
     <div class="section-title">订单信息</div>
     <el-descriptions :column="2" v-if="order">
       <el-descriptions-item label="订单号">{{ order.orderNo }}</el-descriptions-item>
-      <el-descriptions-item label="状态">{{ order.status }}</el-descriptions-item>
+      <el-descriptions-item label="状态">{{ statusLabel(order.status) }}</el-descriptions-item>
       <el-descriptions-item label="策略">{{ order.strategyType || '-' }}</el-descriptions-item>
       <el-descriptions-item label="创建时间">{{ order.createTime }}</el-descriptions-item>
     </el-descriptions>
@@ -51,6 +71,11 @@ onMounted(async () => {
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="skuId" label="SKU" />
       <el-table-column prop="quantity" label="数量(件)" />
+      <el-table-column label="图片" width="120">
+        <template #default="{ row }">
+          <img v-if="row.imageBase64" :src="row.imageBase64" alt="图片" class="item-image-preview" />
+        </template>
+      </el-table-column>
     </el-table>
   </div>
 
@@ -65,7 +90,7 @@ onMounted(async () => {
         </el-select>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" :loading="loading" @click="execute">执行入库</el-button>
+        <el-button type="primary" :loading="loading" :disabled="isExecuted" @click="execute">执行入库</el-button>
       </el-form-item>
     </el-form>
   </div>
@@ -84,3 +109,13 @@ onMounted(async () => {
     </el-table>
   </div>
 </template>
+
+<style scoped>
+.item-image-preview {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #dcdfe6;
+}
+</style>

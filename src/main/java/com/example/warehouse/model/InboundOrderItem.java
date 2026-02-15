@@ -5,6 +5,7 @@ public class InboundOrderItem {
     private Long orderId;
     private Long skuId;
     private Integer quantity;
+    private String imageBase64;
 
     public Long getId() {
         return id;
@@ -36,5 +37,13 @@ public class InboundOrderItem {
 
     public void setQuantity(Integer quantity) {
         this.quantity = quantity;
+    }
+
+    public String getImageBase64() {
+        return imageBase64;
+    }
+
+    public void setImageBase64(String imageBase64) {
+        this.imageBase64 = imageBase64;
     }
 }
