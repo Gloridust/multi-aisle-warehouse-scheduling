@@ -81,7 +81,7 @@ public class StorageLocationRepository {
 
     public List<StorageLocation> findOccupiedBySku(Long warehouseId, Long skuId) {
         return jdbcTemplate.query(
-                "SELECT * FROM storage_location WHERE warehouse_id = ? AND status = 1 AND current_sku_id = ? ORDER BY id",
+                "SELECT * FROM storage_location WHERE warehouse_id = ? AND current_sku_id = ? AND current_qty > 0 ORDER BY id",
                 rowMapper,
                 warehouseId,
                 skuId
@@ -95,7 +95,7 @@ public class StorageLocationRepository {
 
     public List<StockSummaryRow> fetchStockSummary(Long warehouseId) {
         return jdbcTemplate.query(
-                "SELECT current_sku_id, SUM(current_qty) AS total_qty FROM storage_location WHERE warehouse_id = ? AND status = 1 AND current_sku_id IS NOT NULL GROUP BY current_sku_id",
+                "SELECT current_sku_id, SUM(current_qty) AS total_qty FROM storage_location WHERE warehouse_id = ? AND current_sku_id IS NOT NULL AND current_qty > 0 GROUP BY current_sku_id",
                 (rs, rowNum) -> new StockSummaryRow(rs.getLong("current_sku_id"), rs.getInt("total_qty")),
                 warehouseId
         );
