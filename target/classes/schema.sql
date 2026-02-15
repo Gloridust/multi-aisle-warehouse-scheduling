@@ -3,13 +3,13 @@ CREATE TABLE IF NOT EXISTS warehouse (
   name TEXT,
   total_rows INTEGER,
   total_cols INTEGER,
-  total_sides INTEGER,
+  total_sides INTEGER DEFAULT 2,
   pallet_volume REAL,
   horizontal_speed REAL,
   vertical_speed REAL,
   entry_row INTEGER,
   entry_col INTEGER,
-  entry_side INTEGER
+  entry_side INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS storage_location (
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS storage_location (
   warehouse_id INTEGER,
   row_num INTEGER,
   col_num INTEGER,
-  side_num INTEGER,
+  side_num INTEGER DEFAULT 0,
   status INTEGER,
   current_sku_id INTEGER,
   current_qty INTEGER,
