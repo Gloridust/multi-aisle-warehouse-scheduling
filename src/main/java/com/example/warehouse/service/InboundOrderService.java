@@ -95,6 +95,8 @@ public class InboundOrderService {
         List<AllocationResult> results = allocationResultRepository.findByOrderId(orderId);
         Map<Long, String> skuNameMap = skuRepository.findAll().stream()
                 .collect(Collectors.toMap(Sku::getId, Sku::getName));
+        Map<Long, String> skuImageMap = inboundOrderItemRepository.findByOrderId(orderId).stream()
+                .collect(Collectors.toMap(InboundOrderItem::getSkuId, InboundOrderItem::getImageBase64, (a, b) -> a));
         Map<Long, StorageLocation> locationMap = storageLocationRepository.findByWarehouseId(getWarehouse().getId()).stream()
                 .collect(Collectors.toMap(StorageLocation::getId, loc -> loc));
         List<AllocationView> views = new ArrayList<>();
@@ -110,6 +112,7 @@ public class InboundOrderService {
             view.setAllocatedQty(result.getAllocatedQty());
             view.setAllocatedVolume(result.getAllocatedVolume());
             view.setAccessDistance(result.getAccessDistance());
+            view.setSkuImageBase64(skuImageMap.get(result.getSkuId()));
             views.add(view);
         }
         return views;

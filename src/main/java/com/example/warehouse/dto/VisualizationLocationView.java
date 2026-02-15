@@ -11,6 +11,7 @@ public class VisualizationLocationView {
     private Integer currentQty;
     private Double usedVolume;
     private String skuImageBase64;
+    private Double accessDistance;
 
     public Long getId() {
         return id;
@@ -90,5 +91,13 @@ public class VisualizationLocationView {
 
     public void setSkuImageBase64(String skuImageBase64) {
         this.skuImageBase64 = skuImageBase64;
+    }
+
+    public Double getAccessDistance() {
+        return accessDistance;
+    }
+
+    public void setAccessDistance(Double accessDistance) {
+        this.accessDistance = accessDistance;
     }
 }

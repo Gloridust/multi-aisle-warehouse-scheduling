@@ -105,7 +105,7 @@ onMounted(async () => {
       <el-table-column prop="skuName" label="SKU" />
       <el-table-column prop="allocatedQty" label="数量(件)" />
       <el-table-column prop="allocatedVolume" label="体积(m³)" />
-      <el-table-column prop="accessDistance" label="存取距离(s)" />
+      <el-table-column prop="accessDistance" label="访问距离(s)" />
     </el-table>
   </div>
 </template>

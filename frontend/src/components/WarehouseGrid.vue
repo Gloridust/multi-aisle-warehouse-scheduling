@@ -51,6 +51,9 @@ const imageTitle = ref('')
 
 const openImage = (cell, row, col) => {
   if (!cell || !cell.skuImageBase64) {
+    imageDialogVisible.value = false
+    imageUrl.value = ''
+    imageTitle.value = ''
     return
   }
   imageUrl.value = cell.skuImageBase64
@@ -70,7 +73,7 @@ const openImage = (cell, row, col) => {
               <div>SKU: {{ cellMap.get(keyFor(row, col)).skuName || '-' }}</div>
               <div>数量(件): {{ cellMap.get(keyFor(row, col)).currentQty || cellMap.get(keyFor(row, col)).allocatedQty || 0 }}</div>
               <div>占用体积(m³): {{ cellMap.get(keyFor(row, col)).usedVolume || cellMap.get(keyFor(row, col)).allocatedVolume || 0 }}</div>
-              <div>存取距离(s): {{ cellMap.get(keyFor(row, col)).accessDistance || 0 }}</div>
+              <div>访问距离(s): {{ cellMap.get(keyFor(row, col)).accessDistance || 0 }}</div>
             </div>
           </template>
           <div

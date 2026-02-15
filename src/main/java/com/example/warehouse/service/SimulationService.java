@@ -53,6 +53,9 @@ public class SimulationService {
         List<OrderItemDetail> details = buildOrderDetails(orderId);
         List<String> strategyTypes = List.of("CATEGORY", "NEAREST", "GENETIC");
         simulationResultRepository.deleteByOrderId(orderId);
+        Map<Long, String> skuImageMap = inboundOrderItemRepository.findByOrderId(orderId).stream()
+                .filter(item -> item.getSkuId() != null && item.getImageBase64() != null && !item.getImageBase64().isBlank())
+                .collect(Collectors.toMap(item -> item.getSkuId(), item -> item.getImageBase64(), (a, b) -> a));
         Map<Long, StorageLocation> locationMap = storageLocationRepository.findByWarehouseId(warehouse.getId())
                 .stream().collect(Collectors.toMap(StorageLocation::getId, loc -> loc));
         Map<Long, Sku> skuMap = skuRepository.findAll().stream()
@@ -65,7 +68,7 @@ public class SimulationService {
             long computeTime = System.currentTimeMillis() - start;
             SimulationResultView view = new SimulationResultView();
             view.setStrategyType(strategyType);
-            view.setAllocations(toAllocationViews(allocations, locationMap, skuMap));
+            view.setAllocations(toAllocationViews(allocations, locationMap, skuMap, skuImageMap));
             view.setUsedLocations(allocations.size());
             double totalDistance = allocations.stream().mapToDouble(AllocationResult::getAccessDistance).sum();
             view.setTotalDistance(totalDistance);
@@ -130,7 +133,8 @@ public class SimulationService {
 
     private List<AllocationView> toAllocationViews(List<AllocationResult> allocations,
                                                    Map<Long, StorageLocation> locationMap,
-                                                   Map<Long, Sku> skuMap) {
+                                                   Map<Long, Sku> skuMap,
+                                                   Map<Long, String> skuImageMap) {
         List<AllocationView> views = new ArrayList<>();
         for (AllocationResult allocation : allocations) {
             AllocationView view = new AllocationView();
@@ -145,6 +149,7 @@ public class SimulationService {
             view.setAllocatedQty(allocation.getAllocatedQty());
             view.setAllocatedVolume(allocation.getAllocatedVolume());
             view.setAccessDistance(allocation.getAccessDistance());
+            view.setSkuImageBase64(skuImageMap.get(allocation.getSkuId()));
             views.add(view);
         }
         return views;

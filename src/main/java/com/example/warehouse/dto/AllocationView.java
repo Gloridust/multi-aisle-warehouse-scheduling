@@ -10,6 +10,7 @@ public class AllocationView {
     private Integer allocatedQty;
     private Double allocatedVolume;
     private Double accessDistance;
+    private String skuImageBase64;
 
     public Long getLocationId() {
         return locationId;
@@ -81,5 +82,13 @@ public class AllocationView {
 
     public void setAccessDistance(Double accessDistance) {
         this.accessDistance = accessDistance;
+    }
+
+    public String getSkuImageBase64() {
+        return skuImageBase64;
+    }
+
+    public void setSkuImageBase64(String skuImageBase64) {
+        this.skuImageBase64 = skuImageBase64;
     }
 }

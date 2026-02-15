@@ -27,10 +27,10 @@ public class WarehouseService {
         warehouse.setTotalCols(request.getTotalCols());
         warehouse.setTotalSides(resolveTotalSides(request.getTotalSides()));
         warehouse.setPalletVolume(request.getPalletVolume());
-        warehouse.setHorizontalSpeed(request.getHorizontalSpeed());
-        warehouse.setVerticalSpeed(request.getVerticalSpeed());
-        warehouse.setEntryRow(request.getEntryRow() == null ? 1 : request.getEntryRow());
-        warehouse.setEntryCol(request.getEntryCol() == null ? 1 : request.getEntryCol());
+        warehouse.setHorizontalSpeed(resolveSpeed(request.getHorizontalSpeed()));
+        warehouse.setVerticalSpeed(resolveSpeed(request.getVerticalSpeed()));
+        warehouse.setEntryRow(resolveEntryValue(request.getEntryRow()));
+        warehouse.setEntryCol(resolveEntryValue(request.getEntryCol()));
         warehouse.setEntrySide(resolveEntrySide(request.getEntrySide(), warehouse.getTotalSides()));
         Long id = warehouseRepository.insert(warehouse);
         storageLocationRepository.insertBatch(id, warehouse.getTotalRows(), warehouse.getTotalCols(), warehouse.getTotalSides());
@@ -45,10 +45,10 @@ public class WarehouseService {
         warehouse.setTotalCols(request.getTotalCols());
         warehouse.setTotalSides(resolveTotalSides(request.getTotalSides()));
         warehouse.setPalletVolume(request.getPalletVolume());
-        warehouse.setHorizontalSpeed(request.getHorizontalSpeed());
-        warehouse.setVerticalSpeed(request.getVerticalSpeed());
-        warehouse.setEntryRow(request.getEntryRow() == null ? 1 : request.getEntryRow());
-        warehouse.setEntryCol(request.getEntryCol() == null ? 1 : request.getEntryCol());
+        warehouse.setHorizontalSpeed(resolveSpeed(request.getHorizontalSpeed()));
+        warehouse.setVerticalSpeed(resolveSpeed(request.getVerticalSpeed()));
+        warehouse.setEntryRow(resolveEntryValue(request.getEntryRow()));
+        warehouse.setEntryCol(resolveEntryValue(request.getEntryCol()));
         warehouse.setEntrySide(resolveEntrySide(request.getEntrySide(), warehouse.getTotalSides()));
         warehouseRepository.update(warehouse);
         return warehouse;
@@ -84,5 +84,19 @@ public class WarehouseService {
             return totalSides - 1;
         }
         return entrySide;
+    }
+
+    private int resolveEntryValue(Integer value) {
+        if (value == null || value <= 0) {
+            return 1;
+        }
+        return value;
+    }
+
+    private double resolveSpeed(Double value) {
+        if (value == null || value <= 0) {
+            return 1;
+        }
+        return value;
     }
 }

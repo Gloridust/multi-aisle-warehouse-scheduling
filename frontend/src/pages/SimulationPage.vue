@@ -62,11 +62,11 @@ const renderChart = () => {
   const computeTime = results.value.map((r) => r.computeTime || 0)
   chartInstance.setOption({
     tooltip: {},
-    legend: { data: ['总存取距离(s)', '空间利用率(%)', '算法耗时(ms)'] },
+    legend: { data: ['总访问距离(s)', '空间利用率(%)', '算法耗时(ms)'] },
     xAxis: { data: labels },
     yAxis: {},
     series: [
-      { name: '总存取距离(s)', type: 'bar', data: totalDistance },
+      { name: '总访问距离(s)', type: 'bar', data: totalDistance },
       { name: '空间利用率(%)', type: 'bar', data: spaceUtilization },
       { name: '算法耗时(ms)', type: 'bar', data: computeTime }
     ]
@@ -155,8 +155,8 @@ onMounted(() => {
     <div ref="chartRef" style="width: 100%; height: 320px"></div>
     <el-table :data="results" style="width: 100%; margin-top: 16px">
       <el-table-column prop="strategyType" label="策略" />
-      <el-table-column prop="totalDistance" label="总存取距离(s)" />
-      <el-table-column prop="avgDistance" label="平均存取距离(s)" />
+      <el-table-column prop="totalDistance" label="总访问距离(s)" />
+      <el-table-column prop="avgDistance" label="平均访问距离(s)" />
       <el-table-column prop="spaceUtilization" label="空间利用率(%)" />
       <el-table-column prop="usedLocations" label="使用货位数(个)" />
       <el-table-column prop="computeTime" label="算法耗时(ms)" />
